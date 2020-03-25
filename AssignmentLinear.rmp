@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?><process version="9.6.000">
+  <context>
+    <input/>
+    <output/>
+    <macros/>
+  </context>
+  <operator activated="true" class="process" compatibility="9.6.000" expanded="true" name="Process">
+    <parameter key="logverbosity" value="init"/>
+    <parameter key="random_seed" value="2001"/>
+    <parameter key="send_mail" value="never"/>
+    <parameter key="notification_email" value=""/>
+    <parameter key="process_duration_for_mail" value="30"/>
+    <parameter key="encoding" value="SYSTEM"/>
+    <process expanded="true">
+      <operator activated="true" class="retrieve" compatibility="9.6.000" expanded="true" height="68" name="Retrieve poker-hand-training-true" width="90" x="45" y="85">
+        <parameter key="repository_entry" value="//Local Repository/Assignment/poker-hand-training-true"/>
+      </operator>
+      <operator activated="true" class="set_role" compatibility="9.6.000" expanded="true" height="82" name="Set Role" width="90" x="179" y="85">
+        <parameter key="attribute_name" value="C1"/>
+        <parameter key="target_role" value="prediction"/>
+        <list key="set_additional_roles">
+          <parameter key="C2" value="prediction"/>
+          <parameter key="C3" value="prediction"/>
+          <parameter key="C4" value="prediction"/>
+          <parameter key="C5" value="prediction"/>
+        </list>
+      </operator>
+      <operator activated="true" class="time_series:multi_label_model_learner" compatibility="9.6.000" expanded="true" height="103" name="Multi Label Modeling" width="90" x="380" y="34">
+        <parameter key="attribute_filter_type" value="subset"/>
+        <parameter key="attribute" value=""/>
+        <parameter key="attributes" value="C1|C2|C3|C4|C5"/>
+        <parameter key="use_except_expression" value="false"/>
+        <parameter key="value_type" value="attribute_value"/>
+        <parameter key="use_value_type_exception" value="false"/>
+        <parameter key="except_value_type" value="time"/>
+        <parameter key="block_type" value="attribute_block"/>
+        <parameter key="use_block_type_exception" value="false"/>
+        <parameter key="except_block_type" value="value_matrix_row_start"/>
+        <parameter key="invert_selection" value="false"/>
+        <parameter key="include_special_attributes" value="true"/>
+        <parameter key="add_macros" value="false"/>
+        <parameter key="current_label_name_macro" value="current_label_attribute"/>
+        <parameter key="current_label_type_macro" value="current_label_type"/>
+        <parameter key="enable_parallel_execution" value="true"/>
+        <process expanded="true">
+          <operator activated="true" class="linear_regression" compatibility="9.6.000" expanded="true" height="103" name="Linear Regression" width="90" x="380" y="34">
+            <parameter key="feature_selection" value="M5 prime"/>
+            <parameter key="alpha" value="0.05"/>
+            <parameter key="max_iterations" value="10"/>
+            <parameter key="forward_alpha" value="0.05"/>
+            <parameter key="backward_alpha" value="0.05"/>
+            <parameter key="eliminate_colinear_features" value="true"/>
+            <parameter key="min_tolerance" value="0.05"/>
+            <parameter key="use_bias" value="true"/>
+            <parameter key="ridge" value="1.0E-8"/>
+          </operator>
+          <connect from_port="training set" to_op="Linear Regression" to_port="training set"/>
+          <connect from_op="Linear Regression" from_port="model" to_port="model"/>
+          <portSpacing port="source_training set" spacing="0"/>
+          <portSpacing port="source_input 1" spacing="0"/>
+          <portSpacing port="sink_model" spacing="0"/>
+          <portSpacing port="sink_output 1" spacing="0"/>
+          <portSpacing port="sink_output 2" spacing="0"/>
+        </process>
+      </operator>
+      <operator activated="true" class="retrieve" compatibility="9.6.000" expanded="true" height="68" name="Retrieve poker-hand-testing" width="90" x="112" y="187">
+        <parameter key="repository_entry" value="//Local Repository/Assignment/poker-hand-testing"/>
+      </operator>
+      <operator activated="true" class="apply_model" compatibility="9.6.000" expanded="true" height="82" name="Apply Model" width="90" x="514" y="238">
+        <list key="application_parameters"/>
+        <parameter key="create_view" value="false"/>
+      </operator>
+      <connect from_op="Retrieve poker-hand-training-true" from_port="output" to_op="Set Role" to_port="example set input"/>
+      <connect from_op="Set Role" from_port="example set output" to_op="Multi Label Modeling" to_port="training set"/>
+      <connect from_op="Multi Label Modeling" from_port="model" to_op="Apply Model" to_port="model"/>
+      <connect from_op="Multi Label Modeling" from_port="output 1" to_port="result 3"/>
+      <connect from_op="Retrieve poker-hand-testing" from_port="output" to_op="Apply Model" to_port="unlabelled data"/>
+      <connect from_op="Apply Model" from_port="labelled data" to_port="result 2"/>
+      <connect from_op="Apply Model" from_port="model" to_port="result 1"/>
+      <portSpacing port="source_input 1" spacing="0"/>
+      <portSpacing port="sink_result 1" spacing="0"/>
+      <portSpacing port="sink_result 2" spacing="0"/>
+      <portSpacing port="sink_result 3" spacing="0"/>
+      <portSpacing port="sink_result 4" spacing="0"/>
+    </process>
+  </operator>
+</process>
